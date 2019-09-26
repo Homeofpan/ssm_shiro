@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pan.dao.UserMapper">
+
+	<select id="findByName" parameterType="string" resultType="user">
+		select id,username,password from users where username=#{value}
+	</select>
+	<select id="findById" parameterType="int" resultType="user">
+		select * from users where id=#{value}
+	</select>
+
+</mapper>

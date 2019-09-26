@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--
+	 加载配置文件:虽然在dao层已经加载过conf,但是这里仍然无法获取到属性,
+	是两个不同的容器,springmvc是子容器,spring是父容器
+	在mvc容器中可以获取到spring容器的service,但是在spring容器中无法获取mvc的controller
+	猜测就是:@Value方法获取proerties文件的值是获取本容器的,所以springmvc也要扫描一次
+	-->
+	<!-- <context:property-placeholder location="classpath:conf/resource.properties" /> -->
+
+	<!--开启自动扫包:注意这里只扫描controller层的包,防止重复扫描 -->
+	<context:component-scan base-package="com.pan.controller" />
+
+	<!--开启注解驱动:用来替换处理器适配器和处理器映射器 -->
+	<mvc:annotation-driven />
+
+	
+	<!--视图解析器:配置返回的前缀及后缀 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!--拦截静态资源并放行 -->
+	<mvc:default-servlet-handler />
+	<!--此处的mapping指代前台引用的地址,location指代资源实际地址 -->
+	<!-- 配置资源映射 -->
+	<mvc:resources location="/css/" mapping="/css/**"></mvc:resources>
+	<mvc:resources location="/js/" mapping="/js/**"></mvc:resources>
+	<mvc:resources location="/fonts/" mapping="/fonts/**"></mvc:resources>
+	<mvc:resources location="/images/" mapping="/images/**"></mvc:resources>
+	<mvc:resources location="/bootstrap-fileinput/" mapping="/bootstrap-fileinput/**"></mvc:resources>
+	
+	<!-- 定义文件上传解析器 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 设定默认编码 -->
+		<property name="defaultEncoding" value="UTF-8"></property>
+		<!-- 设定文件上传的最大值5MB，10*1024*1024 -->
+		<property name="maxUploadSize" value="5242880"></property>
+	</bean>
+
+	<!--开启aop注解支持 -->
+	<aop:config proxy-target-class="true" />
+	
+	<!-- 如果使用注解来检查权限,会直接抛出异常而不走过滤器里的无权限页面 -->
+	<!-- 因此需要手动来处理 -->
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<prop key="org.apache.shiro.authz.UnauthorizedException">/noAuth</prop>
+				<prop key="org.apache.shiro.authz.UnauthenticatedException">/login</prop>
+			</props>
+		</property>
+	</bean>
+
+</beans>
